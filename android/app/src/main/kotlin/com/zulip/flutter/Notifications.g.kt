@@ -82,10 +82,40 @@ data class PendingIntent (
     )
   }
 }
+
+/**
+ * Corresponds to `androidx.core.app.NotificationCompat.InboxStyle`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.InboxStyle
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class InboxStyle (
+  val summaryText: String
+
+) {
+  companion object {
+    @Suppress("LocalVariableName")
+    fun fromList(__pigeon_list: List<Any?>): InboxStyle {
+      val summaryText = __pigeon_list[0] as String
+      return InboxStyle(summaryText)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      summaryText,
+    )
+  }
+}
 private object AndroidNotificationHostApiCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       128.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          InboxStyle.fromList(it)
+        }
+      }
+      129.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           PendingIntent.fromList(it)
         }
@@ -95,8 +125,12 @@ private object AndroidNotificationHostApiCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is PendingIntent -> {
+      is InboxStyle -> {
         stream.write(128)
+        writeValue(stream, value.toList())
+      }
+      is PendingIntent -> {
+        stream.write(129)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -125,7 +159,7 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
    *   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
    */
-  fun notify(tag: String?, id: Long, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, smallIconResourceName: String?)
+  fun notify(tag: String?, id: Long, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String?, String?>?, smallIconResourceName: String?, groupKey: String?, isGroupSummary: Boolean?, inboxStyle: InboxStyle?, autoCancel: Boolean?)
 
   companion object {
     /** The codec used by AndroidNotificationHostApi. */
@@ -149,8 +183,12 @@ interface AndroidNotificationHostApi {
             val contentTitleArg = args[6] as String?
             val extrasArg = args[7] as Map<String?, String?>?
             val smallIconResourceNameArg = args[8] as String?
+            val groupKeyArg = args[9] as String?
+            val isGroupSummaryArg = args[10] as Boolean?
+            val inboxStyleArg = args[11] as InboxStyle?
+            val autoCancelArg = args[12] as Boolean?
             val wrapped: List<Any?> = try {
-              api.notify(tagArg, idArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, smallIconResourceNameArg)
+              api.notify(tagArg, idArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, smallIconResourceNameArg, groupKeyArg, isGroupSummaryArg, inboxStyleArg, autoCancelArg)
               listOf<Any?>(null)
             } catch (exception: Throwable) {
               wrapError(exception)

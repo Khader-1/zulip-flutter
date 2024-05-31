@@ -376,10 +376,18 @@ extension on Subject<AndroidNotificationHostApiNotifyCall> {
   Subject<String?> get contentTitle => has((x) => x.contentTitle, 'contentTitle');
   Subject<Map<String?, String?>?> get extras => has((x) => x.extras, 'extras');
   Subject<String?> get smallIconResourceName => has((x) => x.smallIconResourceName, 'smallIconResourceName');
+  Subject<String?> get groupKey => has((x) => x.groupKey, 'groupKey');
+  Subject<bool?> get isGroupSummary => has((x) => x.isGroupSummary, 'isGroupSummary');
+  Subject<InboxStyle?> get inboxStyle => has((x) => x.inboxStyle, 'inboxStyle');
+  Subject<bool?> get autoCancel => has((x) => x.autoCancel, 'autoCancel');
 }
 
 extension on Subject<PendingIntent> {
   Subject<int> get requestCode => has((x) => x.requestCode, 'requestCode');
   Subject<String> get intentPayload => has((x) => x.intentPayload, 'intentPayload');
   Subject<int> get flags => has((x) => x.flags, 'flags');
+}
+
+extension on Subject<InboxStyle> {
+  Subject<String> get summaryText => has((x) => x.summaryText, 'summaryText');
 }

@@ -29,7 +29,11 @@ private class AndroidNotificationHost(val context: Context)
         contentText: String?,
         contentTitle: String?,
         extras: Map<String?, String?>?,
-        smallIconResourceName: String?
+        smallIconResourceName: String?,
+        groupKey: String?,
+        isGroupSummary: Boolean?,
+        inboxStyle: InboxStyle?,
+        autoCancel: Boolean?
     ) {
         val notification = NotificationCompat.Builder(context, channelId).apply {
             color?.let { setColor(it.toInt()) }
@@ -51,6 +55,13 @@ private class AndroidNotificationHost(val context: Context)
                 Bundle().apply { it.forEach { (k, v) -> putString(k, v) } } ) }
             smallIconResourceName?.let { setSmallIcon(context.resources.getIdentifier(
                 it, "drawable", context.packageName)) }
+            groupKey?.let { setGroup(it) }
+            isGroupSummary?.let { setGroupSummary(it) }
+            inboxStyle?.let { setStyle(
+                NotificationCompat.InboxStyle()
+                    .setSummaryText(it.summaryText)
+            ) }
+            autoCancel?.let { setAutoCancel(it) }
         }.build()
         NotificationManagerCompat.from(context).notify(tag, id.toInt(), notification)
     }

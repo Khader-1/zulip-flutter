@@ -53,12 +53,39 @@ class PendingIntent {
   }
 }
 
+/// Corresponds to `androidx.core.app.NotificationCompat.InboxStyle`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.InboxStyle
+class InboxStyle {
+  InboxStyle({
+    required this.summaryText,
+  });
+
+  String summaryText;
+
+  Object encode() {
+    return <Object?>[
+      summaryText,
+    ];
+  }
+
+  static InboxStyle decode(Object result) {
+    result as List<Object?>;
+    return InboxStyle(
+      summaryText: result[0]! as String,
+    );
+  }
+}
+
 class _AndroidNotificationHostApiCodec extends StandardMessageCodec {
   const _AndroidNotificationHostApiCodec();
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
-    if (value is PendingIntent) {
+    if (value is InboxStyle) {
       buffer.putUint8(128);
+      writeValue(buffer, value.encode());
+    } else if (value is PendingIntent) {
+      buffer.putUint8(129);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -69,6 +96,8 @@ class _AndroidNotificationHostApiCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 128: 
+        return InboxStyle.decode(readValue(buffer)!);
+      case 129: 
         return PendingIntent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -106,7 +135,7 @@ class AndroidNotificationHostApi {
   /// See:
   ///   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
   ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
-  Future<void> notify({String? tag, required int id, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String?, String?>? extras, String? smallIconResourceName,}) async {
+  Future<void> notify({String? tag, required int id, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String?, String?>? extras, String? smallIconResourceName, String? groupKey, bool? isGroupSummary, InboxStyle? inboxStyle, bool? autoCancel,}) async {
     final String __pigeon_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.notify$__pigeon_messageChannelSuffix';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
@@ -114,7 +143,7 @@ class AndroidNotificationHostApi {
       binaryMessenger: __pigeon_binaryMessenger,
     );
     final List<Object?>? __pigeon_replyList =
-        await __pigeon_channel.send(<Object?>[tag, id, channelId, color, contentIntent, contentText, contentTitle, extras, smallIconResourceName]) as List<Object?>?;
+        await __pigeon_channel.send(<Object?>[tag, id, channelId, color, contentIntent, contentText, contentTitle, extras, smallIconResourceName, groupKey, isGroupSummary, inboxStyle, autoCancel]) as List<Object?>?;
     if (__pigeon_replyList == null) {
       throw _createConnectionError(__pigeon_channelName);
     } else if (__pigeon_replyList.length > 1) {

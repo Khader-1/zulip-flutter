@@ -503,6 +503,10 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     String? contentTitle,
     Map<String?, String?>? extras,
     String? smallIconResourceName,
+    String? groupKey,
+    bool? isGroupSummary,
+    InboxStyle? inboxStyle,
+    bool? autoCancel,
   }) async {
     _notifyCalls.add((
       tag: tag,
@@ -514,6 +518,10 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       contentTitle: contentTitle,
       extras: extras,
       smallIconResourceName: smallIconResourceName,
+      groupKey: groupKey,
+      isGroupSummary: isGroupSummary,
+      inboxStyle: inboxStyle,
+      autoCancel: autoCancel,
     ));
   }
 }
@@ -528,4 +536,8 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   String? contentTitle,
   Map<String?, String?>? extras,
   String? smallIconResourceName,
+  String? groupKey,
+  bool? isGroupSummary,
+  InboxStyle? inboxStyle,
+  bool? autoCancel,
 });
