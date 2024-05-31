@@ -111,11 +111,13 @@ void main() {
       required String expectedTagComponent,
     }) {
       final expectedTag = '${data.realmUri}|${data.userId}|$expectedTagComponent';
+      final expectedGroupKey = '${data.realmUri}|${data.userId}';
       final expectedId =
         NotificationDisplayManager.notificationIdAsHashOf(expectedTag);
       const expectedIntentFlags =
         PendingIntentFlag.immutable | PendingIntentFlag.updateCurrent;
-      check(testBinding.androidNotificationHost.takeNotifyCalls()).single
+      final calls = testBinding.androidNotificationHost.takeNotifyCalls();
+      check(calls[0])
         ..id.equals(expectedId)
         ..tag.equals(expectedTag)
         ..channelId.equals(NotificationChannelManager.kChannelId)
@@ -124,11 +126,31 @@ void main() {
         ..color.equals(kZulipBrandColor.value)
         ..smallIconResourceName.equals('zulip_notification')
         ..extras.isNull()
+        ..groupKey.equals(expectedGroupKey)
+        ..isGroupSummary.isNull()
+        ..inboxStyle.isNull()
+        ..autoCancel.equals(true)
         ..contentIntent.which((it) => it.isNotNull()
           ..requestCode.equals(expectedId)
           ..flags.equals(expectedIntentFlags)
           ..intentPayload.equals(jsonEncode(data.toJson()))
         );
+      check(calls[1])
+        ..id.equals(NotificationDisplayManager.notificationIdAsHashOf(expectedGroupKey))
+        ..tag.equals(expectedGroupKey)
+        ..channelId.equals(NotificationChannelManager.kChannelId)
+        ..contentTitle.isNull()
+        ..contentText.isNull()
+        ..color.equals(kZulipBrandColor.value)
+        ..smallIconResourceName.equals('zulip_notification')
+        ..extras.isNull()
+        ..groupKey.equals(expectedGroupKey)
+        ..isGroupSummary.equals(true)
+        ..inboxStyle.which((it) => it.isNotNull()
+          ..summaryText.equals(data.realmUri.toString())
+        )
+        ..autoCancel.equals(true)
+        ..contentIntent.isNull();
     }
 
     Future<void> checkNotifications(FakeAsync async, MessageFcmMessage data, {
