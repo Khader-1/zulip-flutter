@@ -94,9 +94,9 @@ class NotificationDisplayManager {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     final title = switch (data.recipient) {
       FcmMessageStreamRecipient(:var streamName?, :var topic) =>
-        '$streamName > $topic',
+        '#$streamName > $topic',
       FcmMessageStreamRecipient(:var topic) =>
-        '(unknown stream) > $topic', // TODO get stream name from data
+        '#(unknown stream) > $topic', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data

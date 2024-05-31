@@ -179,7 +179,7 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
-        expectedTitle: '${stream.name} > ${message.subject}',
+        expectedTitle: '#${stream.name} > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     }));
 
@@ -188,7 +188,7 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: null),
-        expectedTitle: '(unknown stream) > ${message.subject}',
+        expectedTitle: '#(unknown stream) > ${message.subject}',
         expectedTagComponent: 'stream:${message.streamId}:${message.subject}');
     }));
 
