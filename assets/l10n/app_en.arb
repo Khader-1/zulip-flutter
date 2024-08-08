@@ -367,8 +367,8 @@
       "num": {"type": "int", "example": "4"}
     }
   },
-  "browseMoreNChannels": "Browse {num, plural, =0{no other channels} =1{1 more channel} other{{num} more channels}}",
-  "@browseMoreNChannels": {
+  "browseNMoreChannels": "Browse {num, plural, =1{1 more channel} other{{num} more channels}}",
+  "@browseNMoreChannels": {
     "description": "Label showing the number of other channels that user can subscribe to",
     "placeholders": {
       "num": {"type": "int", "example": "4"}
@@ -552,5 +552,26 @@
   "manyPeopleTyping": "Several people are typing…",
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "messageSubscribedToChannel": "You've just subscribed to #{channelName}.",
+  "@messageSubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is successful",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "messageAlreadySubscribedToChannel": "You're already subscribed to #{channelName}.",
+  "@messageAlreadySubscribedToChannel": {
+    "description": "A message shown to inform user that subscription is already made",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
+  },
+  "errorFailedToSubscribedToChannel": "Failed to subscribe to #{channelName}.",
+  "@errorFailedToSubscribedToChannel": {
+    "description": "An error message when subscribe action fails",
+    "placeholders": {
+      "channelName": {"type": "String", "example": "announce"}
+    }
   }
 }

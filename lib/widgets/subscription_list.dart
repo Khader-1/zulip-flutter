@@ -211,7 +211,7 @@ class _ChannelListLinkItem extends StatelessWidget {
     final notShownStreams = store.streams.length - store.subscriptions.length;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final label = notShownStreams != 0
-      ? zulipLocalizations.browseMoreNChannels(notShownStreams)
+      ? zulipLocalizations.browseNMoreChannels(notShownStreams)
       : zulipLocalizations.browseAllChannels;
     return SliverToBoxAdapter(
       child: Material(
