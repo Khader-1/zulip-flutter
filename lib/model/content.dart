@@ -220,6 +220,7 @@ class ParagraphNode extends BlockInlineContainerNode {
   const ParagraphNode({
     super.debugHtmlNode,
     this.wasImplicit = false,
+    this.isEmojiParagraph = false,
     required super.links,
     required super.nodes,
   });
@@ -227,10 +228,15 @@ class ParagraphNode extends BlockInlineContainerNode {
   /// True when there was no corresponding `p` element in the original HTML.
   final bool wasImplicit;
 
+  /// Whether this paragraph consists entirely of emoji (and whitespace),
+  /// and emoji should therefore be rendered at a larger size.
+  final bool isEmojiParagraph;
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(FlagProperty('wasImplicit', value: wasImplicit, ifTrue: 'was implicit'));
+    properties.add(FlagProperty('isEmojiParagraph', value: isEmojiParagraph, ifTrue: 'is emoji paragraph'));
   }
 }
 
@@ -1131,6 +1137,10 @@ class UserGroupMentionNode extends MentionNode {
 
 // TODO(#646) add WildcardMentionNode
 
+/// An emoji node: either a Unicode emoji or a custom (image) emoji.
+///
+/// Whether this emoji should be rendered at a larger size is determined
+/// by the containing [ParagraphNode.isEmojiParagraph].
 sealed class EmojiNode extends InlineContentNode {
   const EmojiNode({super.debugHtmlNode});
 }
@@ -1156,7 +1166,7 @@ class UnicodeEmojiNode extends EmojiNode {
 }
 
 class ImageEmojiNode extends EmojiNode {
-  const ImageEmojiNode({super.debugHtmlNode, required this.src, required this.alt });
+  const ImageEmojiNode({super.debugHtmlNode, required this.src, required this.alt});
 
   final String src;
   final String alt;
@@ -2291,6 +2301,24 @@ class _ZulipContentParser {
   ZulipContent parse(String html) {
     final fragment = HtmlParser(html, parseMeta: false).parseFragment();
     final nodes = parseBlockContentList(fragment.nodes);
+
+    if (nodes.length == 1 && nodes.first is ParagraphNode) {
+      final paraNode = nodes.first as ParagraphNode;
+
+      final isOnlyEmoji = paraNode.nodes.every((node) =>
+        node is EmojiNode
+        || (node is TextNode && node.text.trim().isEmpty));
+
+      if (isOnlyEmoji) {
+        nodes[0] = ParagraphNode(
+          debugHtmlNode: paraNode.debugHtmlNode,
+          wasImplicit: paraNode.wasImplicit,
+          isEmojiParagraph: true,
+          links: paraNode.links,
+          nodes: paraNode.nodes);
+      }
+    }
+
     return ZulipContent(nodes: nodes, debugHtmlNode: kDebugMode ? fragment : null);
   }
 }

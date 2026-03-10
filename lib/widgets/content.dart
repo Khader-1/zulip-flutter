@@ -414,6 +414,7 @@ class Paragraph extends StatelessWidget {
     final text = _buildBlockInlineContainer(
       node: node,
       style: DefaultTextStyle.of(context).style,
+      isEmojiParagraph: node.isEmojiParagraph,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
@@ -908,13 +909,16 @@ Widget _buildBlockInlineContainer({
   required TextStyle style,
   required BlockInlineContainerNode node,
   TextAlign? textAlign,
+  bool isEmojiParagraph = false,
 }) {
   if (node.links == null) {
     return InlineContent(recognizer: null, linkRecognizers: null,
-      style: style, nodes: node.nodes, textAlign: textAlign);
+      style: style, nodes: node.nodes, textAlign: textAlign,
+      isEmojiParagraph: isEmojiParagraph);
   }
   return _BlockInlineContainer(links: node.links!,
-    style: style, nodes: node.nodes, textAlign: textAlign);
+    style: style, nodes: node.nodes, textAlign: textAlign,
+    isEmojiParagraph: isEmojiParagraph);
 }
 
 class _BlockInlineContainer extends StatefulWidget {
@@ -923,12 +927,14 @@ class _BlockInlineContainer extends StatefulWidget {
     required this.style,
     required this.nodes,
     this.textAlign,
+    this.isEmojiParagraph = false,
   });
 
   final List<LinkNode> links;
   final TextStyle style;
   final List<InlineContentNode> nodes;
   final TextAlign? textAlign;
+  final bool isEmojiParagraph;
 
   @override
   State<_BlockInlineContainer> createState() => _BlockInlineContainerState();
@@ -973,7 +979,8 @@ class _BlockInlineContainerState extends State<_BlockInlineContainer> {
   @override
   Widget build(BuildContext context) {
     return InlineContent(recognizer: null, linkRecognizers: _recognizers,
-      style: widget.style, nodes: widget.nodes, textAlign: widget.textAlign);
+      style: widget.style, nodes: widget.nodes, textAlign: widget.textAlign,
+      isEmojiParagraph: widget.isEmojiParagraph);
   }
 }
 
@@ -985,6 +992,7 @@ class InlineContent extends StatelessWidget {
     required this.style,
     required this.nodes,
     this.textAlign,
+    this.isEmojiParagraph = false,
   }) {
     assert(style.fontSize != null);
     assert(
@@ -1010,6 +1018,9 @@ class InlineContent extends StatelessWidget {
   final TextAlign? textAlign;
 
   final List<InlineContentNode> nodes;
+
+  /// Whether this content is inside an emoji-only paragraph.
+  final bool isEmojiParagraph;
 
   late final _InlineContentBuilder _builder;
 
@@ -1102,12 +1113,22 @@ class _InlineContentBuilder {
           child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
+        final baseStyle = ContentTheme.of(_context!).textStyleEmoji;
+
+        final currentFontSize = baseStyle.fontSize
+          ?? DefaultTextStyle.of(_context!).style.fontSize
+          ?? kBaseFontSize;
+
+        final emojiNodeStyle = widget.isEmojiParagraph
+          ? baseStyle.copyWith(fontSize: currentFontSize * 2.0)
+          : baseStyle;
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: ContentTheme.of(_context!).textStyleEmoji);
+          style: emojiNodeStyle);
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: MessageImageEmoji(node: node));
+          child: MessageImageEmoji(node: node,
+            isDoubleSized: widget.isEmojiParagraph));
 
       case InlineImageNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1264,26 +1285,31 @@ class Mention extends StatelessWidget {
 }
 
 class MessageImageEmoji extends StatelessWidget {
-  const MessageImageEmoji({super.key, required this.node});
+  const MessageImageEmoji({
+    super.key,
+    required this.node,
+    required this.isDoubleSized,
+  });
 
   final ImageEmojiNode node;
+  final bool isDoubleSized;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.src);
-
-    const size = 20.0;
+    const baseSize = 20.0;
+    final size = isDoubleSized ? baseSize * 2 : baseSize;
 
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        const SizedBox(width: size, height: kBaseFontSize),
+        SizedBox(width: size, height: isDoubleSized ? kBaseFontSize * 2 : kBaseFontSize),
         Positioned(
           // Web's css makes this seem like it should be -0.5, but that looks
           // too low.
-          top: -1.5,
+          top: isDoubleSized ? -3 : -1.5,
           child: resolvedSrc == null ? const SizedBox.shrink() // TODO(log)
             : RealmContentNetworkImage(
                 resolvedSrc,
